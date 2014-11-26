@@ -29,8 +29,12 @@ public class TSPState extends State {
 		pheromones[ ((TSPState) other).id ] = amt;
 	}
 
-	public ArrayList<TSPState> getNeighbors () {
-		return inst.cities;	// every node has everything as a neighbor - so the neighbors list is the list of 
+	public ArrayList<State> getNeighbors () {
+		return inst.states;	// every node has everything as a neighbor - so the neighbors list is the list of 
 							// cities. No sense in copying it over to every node.
+	}
+
+	public String toString () {
+		return "(" + x + ", " + y + ")";
 	}
 }

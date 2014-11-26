@@ -8,9 +8,10 @@ public class AntColony {
 											// before this generation's ants make their contributions.
 	public static final double ELITE_PHEROMONE_MUL = 5;	// the elite ant deposits extra pheromones; multiply the normal by this amount.
 	
-	public ArrayList<State> runACO (Instance inst, int num_ants, int num_generations) {
+	public static Ant runACO (Instance inst, int num_ants, int num_generations) {
 		Ant elite = null;
 		for (int i=0; i < num_generations; i++) {
+			System.out.println("Generation " + i);
 			// first make an array of ants that start on the start state 
 			Ant[] ants = new Ant[num_ants];
 			for (int j=0; j < num_ants; j++) {
@@ -20,6 +21,7 @@ public class AntColony {
 			// now run the ants 
 			boolean all_done = true;
 			do {
+				all_done = true;
 				for (Ant a : ants) {
 					all_done &= a.extendPath();
 				}
@@ -44,7 +46,15 @@ public class AntColony {
 			// have the elite path deposit extra pheromones
 			elite.depositPheromones(ELITE_PHEROMONE_MUL);
 		}
-		return elite.path;
+		return elite;
 	}
 
+	public static void main (String[] args) {
+		TSPInstance t = new TSPInstance(Integer.parseInt (args[0]));
+		Ant soln = runACO (t, 10, 10);
+		System.out.println("Path length: " + soln.length);
+		for (State s : soln.path) {
+			System.out.println("City #" + s.id + ": " + (TSPState) s);
+		}
+	}
 }
