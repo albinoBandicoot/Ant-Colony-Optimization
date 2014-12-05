@@ -1,10 +1,13 @@
 import java.util.*;
 public class TSPInstance extends Instance {
+	
+	public static final int SIZE = 500; // max x, y value for a city; should correspond with SIZE variable in AntColony.java
+	public static Random rand = new Random (751);	// use a fixed seed so we can compare tweaking parameter values on the same random instance
 
 	public TSPInstance (int n) {
 		states = new ArrayList<State>();
 		for (int i=0; i < n; i++) {
-			states.add (new TSPState (i, Math.random()*30, Math.random()*30, n, this));
+			states.add (new TSPState (i, rand.nextDouble()*SIZE, rand.nextDouble()*SIZE, n, this));
 		}
 		initial = states.get(0);
 	}
