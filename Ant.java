@@ -3,6 +3,7 @@ public class Ant {
 
 	public int id = 0;
 	public ArrayList<State> path;
+	public HashSet <State>  pathset;
 	public double length;	// stores the length of the current path, for efficiency.
 	public boolean done;
 	public Instance inst;
@@ -13,6 +14,7 @@ public class Ant {
 		this.inst = inst;
 		this.id = NUM++;
 		path = new ArrayList<State>();
+		pathset = new HashSet <State>();
 		path.add (inst.initial);
 		length = 0;
 		done = false;
@@ -23,6 +25,7 @@ public class Ant {
 			length += path.get (path.size()-1).distanceTo (s);
 		}
 		path.add (s);
+		pathset.add (s);
 	}
 
 	public void depositPheromones (double multiplier) {

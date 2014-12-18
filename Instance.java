@@ -5,6 +5,7 @@ public abstract class Instance {
 	public State initial;
 
 	public abstract ArrayList<State> getViableNeighbors (Ant a) ;
+	public abstract void reset ();
 
 }
 
