@@ -67,7 +67,7 @@ public class Individual {
 	 * the length differences are quite small, and so there is very little selection pressure. It is also important
 	 * to use C/len instead of C*len, since we want to select for minimum lengths, not maximum ones. */
 	public double mappingFunc (double len) {
-		return Math.pow(5400/len, 10);
+		return Math.pow(5400/len, 16);
 	}
 
 	public String toString () {

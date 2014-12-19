@@ -14,8 +14,8 @@ public class Genetic {
 
 	public int POP_SIZE = 20;
 	public double MUTATION_RATE = 0.1;
-	public int NUM_TESTS = 10;
-	public int NUM_CITIES = 30;
+	public int NUM_TESTS = 7;
+	public int NUM_CITIES = 20;
 	public int GENERATIONS = 25;
 
 	/* Initialize the population with random individuals, and generate random test instances of TSP */
