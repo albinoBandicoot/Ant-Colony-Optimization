@@ -18,6 +18,7 @@ public class Genetic {
 	public int NUM_CITIES = 30;
 	public int GENERATIONS = 25;
 
+	/* Initialize the population with random individuals, and generate random test instances of TSP */
 	public Genetic () {
 		parents = new Individual[POP_SIZE];
 		children = new Individual[POP_SIZE];
@@ -30,16 +31,17 @@ public class Genetic {
 		}
 	}
 
+	/* Evaluate the fitness of all of the parents, and compute fitsum, the sum of these fitnesses */
 	public void evalFitness () {
 		fitsum = 0;
 		int idx = 0;
 		for (Individual i : parents) {
-//			System.out.print ("\rEval'ing fitness of indiv " + (idx++));
 			fitsum += i.evalFitness (tests);
 			System.out.println (i);
 		}
 	}
 
+	/* Find the parent with the highest fitness */
 	public Individual findEliteParent () {
 		int idx = 0;
 		double best_fitness = 0;
@@ -52,6 +54,7 @@ public class Genetic {
 		return parents[idx];
 	}
 
+	/* Choose parents randombly with probability p.fitness / fitsum. */
 	public Individual pickParent () {
 		double r = Math.random() * fitsum;
 		double acc = 0;
@@ -63,9 +66,10 @@ public class Genetic {
 		return parents[i-1];
 	}
 
+	/* Run one generation of the genetic algorithm */
 	public void runGeneration () {
-		evalFitness();
-		Individual e = findEliteParent();
+		evalFitness();	// first evaluate the fitness of all the parents
+		Individual e = findEliteParent();	// find the best in this generation and update the elite if it's better
 		if (elite == null) {
 			elite = e;
 		} else if (e.fitness > elite.fitness) {
@@ -77,8 +81,8 @@ public class Genetic {
 		for (int i=1; i < POP_SIZE; i++) {
 			Individual a = pickParent ();
 			Individual b = pickParent ();
-			children[i] = new Individual (a, b);
-			if (Math.random() < MUTATION_RATE) {
+			children[i] = new Individual (a, b);	// crossover
+			if (Math.random() < MUTATION_RATE) {	// potentially mutate
 				children[i].mutate();
 			}
 		}

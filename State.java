@@ -1,6 +1,10 @@
 import java.util.*;
 public abstract class State {
 
+	/* Abstract states; implementations for solving a particular problem should extend
+	 * this class to control distance and neighbor computations, as well as whatever
+	 * internal representation for they want for the pheromones. */
+
 	public int id;		// unique ID number for each state; can be used as an index
 
 	public State (int id) {

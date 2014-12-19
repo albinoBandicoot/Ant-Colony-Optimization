@@ -1,0 +1,25 @@
+The main class is AntColony; it provides a simple text-based interface to the Ant Colony Optimzation
+algorithm for TSP. After compilation, run
+
+	java AntColony
+
+and follow the prompts to load an instance of TSP from a file (several examples are provided) or to
+generate a random instance. From there, specify the number of ants to use and the number of generations
+to run when prompted. You may then run the ant colony algorithm with a graphical display or not, or
+generate graphs like the ones in our presentation and paper. You can also override the default values
+of the alpha, beta, Q, and rho parameters.
+
+The file format for the input files is simply that each line corresponds to a city, with x and y
+coordinates given as whitespace-separated floating point numbers. A small shell script, tsplibconv.sh,
+is provided to convert the common TSPLIB format for traveling salesman datasets into our format. 
+
+There is also a program that implements a genetic algorithm, where the individuals are ant colonies,
+and the chromosomes are specified by the parameters. Fitness is determined by running the ant colonies
+on random TSP instances of a certain size. The results can be rather erratic, but it is an interesting
+experiment. To run it, just type 
+
+	java Genetic
+
+Parameters such as the population size, the size and numberof the TSP instances for fitness evaluation,
+and mutation rates can be specified by changing the global variables in Genetic.java and Individual.java.
+

@@ -1,14 +1,21 @@
 public class Individual {
 
+	/* One individual in the genetic algorithm for breeding ant colonies */
+
 	public AntColony ac;
 	public double fitness;
 
-	/* Ranges for random values of parameters. Order is alpha, beta, rho, q */
+	/* Allowable ranges for random values of parameters. Order is alpha, beta, q, rho; the same as in the get/setParam methods of AntColony */
 	public static final double[] paramMins =  {0.05, 0.05, 0.1, 0};
 	public static final double[] paramMaxes = {20.0, 20.0, 1000, 1};
-	public static final int ANTS = 20;
-	public static final int ACO_GENERATIONS = 90;
-	public static final double MUTATION_SIZE = 0.3;
+
+	/* More parameters controlling the genetic algorithm mechanics*/
+	public static final int ANTS = 20;			// number of ants to use 
+	public static final int ACO_GENERATIONS = 90;	// number of generations to run the ant colonies
+	public static final double MUTATION_SIZE = 0.3;	// control on how large mutations are (as a proportion of the allowable range)
+
+
+	// these control the range of random weights for the linear combinations used in the crossover
 	public static final double MIN_WT = -0.3;
 	public static final double MAX_WT = 1.3;
 
@@ -55,6 +62,10 @@ public class Individual {
 		return fitness;
 	}
 
+	/* This function is very important. It controls how the raw lengths from the runs of ACO are mapped to fitness
+	 * values. The high exponent is used to make the differences between different individuals larger, as typically
+	 * the length differences are quite small, and so there is very little selection pressure. It is also important
+	 * to use C/len instead of C*len, since we want to select for minimum lengths, not maximum ones. */
 	public double mappingFunc (double len) {
 		return Math.pow(5400/len, 10);
 	}

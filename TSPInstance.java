@@ -4,6 +4,7 @@ public class TSPInstance extends Instance {
 	
 	public static Random rand = new Random (751);	// use a fixed seed so we can compare tweaking parameter values on the same random instance
 
+	/* Generate a random TSP instance with n cities, distributed across an area the size of the graphics window */
 	public TSPInstance (int n) {
 		states = new ArrayList<State>();
 		for (int i=0; i < n; i++) {
@@ -17,6 +18,10 @@ public class TSPInstance extends Instance {
 		}
 	}
 
+	/* Read in a file specifying the X,Y coordinates of the cities, one city per line. These can be generated from the 
+	 * popular TSPLIB format by using tsplibconv.sh. This constructor will automatically scale and translate the city locations
+	 * so that they fit nicely on the graphics window (though it keeps the actual distance relationships intact, so the path
+	 * lengths may be compared to the optimal lengths if known) */
 	public TSPInstance (File f) throws IOException {
 		ArrayList<double[]> cities = new ArrayList<double[]>();
 		Scanner sc = new Scanner (f);
@@ -56,6 +61,7 @@ public class TSPInstance extends Instance {
 		}
 	}
 
+	/* Clear up the pheromones left from a previous run, and re-initialize the probabilities */
 	public void reset (AntColony ac) {
 		for (State s : states) {
 			s.reset();
@@ -63,6 +69,7 @@ public class TSPInstance extends Instance {
 		}
 	}
 
+	/* Compute the sum of the pheromones along all edges. Useful for analysis. */
 	public double pheromoneSum () {
 		double sum = 0;
 		for (State s : states) {
@@ -74,6 +81,8 @@ public class TSPInstance extends Instance {
 		return sum;
 	}
 
+	/* Determine which states the ant 'a' can visit next. This is any state that is not already
+	 * in the path, except for when we've visited everything, we want to go back to where we started. */
 	public ArrayList<State> getViableNeighbors (Ant a) {
 		if (a.path.size() == states.size()) {	// then we want the only option to be returning to the start point
 			ArrayList<State> res = new ArrayList<State>();

@@ -4,8 +4,11 @@ public class TSPState extends State {
 	/* These represent the cities */
 
 	public double x,y;	// position of city
-	public double[] pheromones;
-	public double[] probabilities;
+	public double[] pheromones;	// amount of pheromones along edge to each other city
+	public double[] probabilities;	// precomputed probabilities (not really probabilities, but proportional to the probabilities - these are
+									// probably better termed 'desirabilities') for each other city. These are the pheromones^ALPHA + (1/distance)^BETA.
+									// Storing these rather than computing them each time is a performance optimization.
+
 	public double[] distances;	// this allows for arbitrary edge weights that don't have to come from Euclidean distances in the plane
 	public TSPInstance inst;
 
@@ -19,6 +22,7 @@ public class TSPState extends State {
 		inst = tspi;
 	}
 
+	/* Compute the distances to each other city */
 	public void initDistances () {
 		for (int i=0; i < inst.states.size(); i++) {
 			TSPState t = (TSPState) inst.states.get(i);
@@ -34,10 +38,6 @@ public class TSPState extends State {
 
 	public double distanceTo (State other) {
 		return distances [ ((TSPState) other).id ];
-		/*
-		TSPState s = (TSPState) other;
-		return Math.sqrt ( (x-s.x) * (x-s.x) + (y-s.y) * (y-s.y) );
-		*/
 	}
 
 	public double getPheromones (State other) {

@@ -2,10 +2,11 @@ import java.awt.image.BufferedImage;
 import java.awt.*;
 public class Graphing {
 
+	/* This class provides the methods for producing the graphs. The code is a bit messy, my apologies. */
+
 	/* Produce a graph of the final path length and number of generations before finding the eventual elite path
 	 * on a particular TSP instance while varying one of the parameters (alpha, beta, Q, RHO). The parameter goes
 	 * on the X-axis, and the path length and generation count goes on the Y */
-
 	// set yscale to 0 for auto
 	public static BufferedImage graphParam (AntColony ac, TSPInstance t, int ng, int nruns, Variator v, int xstep, double yscale) {
 		int xsize = xstep * v.nsteps;
@@ -52,6 +53,7 @@ public class Graphing {
 		return gr;
 	}
 
+	// find the convergence time (blue line on graphs)
 	public static int findConvTime (double[] e) {
 		double val = e[e.length-1];
 		for (int i=e.length-1; i>=0; i--){ 
@@ -106,6 +108,9 @@ public class Graphing {
 		}
 	}
 
+	/* Make a graph of average path lengths against time (#generations elapsed), while varying a parameter
+	 * according to the variator. Multiple curves will be drawn, one for each parameter assignment, going from
+	 * red to blue. */
 	public static BufferedImage graphLengths (AntColony ac, TSPInstance t, int ng, int nruns, Variator v, int xscale, boolean graph_elites) {
 		BufferedImage gr = new BufferedImage (ng*xscale, 500, 1);
 		Graphics2D g = (Graphics2D) gr.getGraphics();

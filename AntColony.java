@@ -5,17 +5,23 @@ import javax.imageio.*;
 import java.awt.*;
 public class AntColony {
 
-	public static int SIZE = 600;		// Draws a display window of dimensions (size, size); should correspond with SIZE variable in TSPInstance.java
+	/* This is the main class for the ant colony algorithm. It contains the guts, as well as the visualization code,
+	 * which makes use of the Picture class. */
+
+	public static int SIZE = 600;	// size of the graphics display window
+
+	/* Parameters for the Ant Colony algorithm */
 	public double ALPHA = 2;	// exponent on pheromone amount; controls how strongly pheromones influence the decision about which neighbor node to visit next
 	public double BETA  = 1;	// exponent on distance.
 	public double Q = 100;		// constant multiplier for how much pheromone each ant deposits.
 	public double RHO = 0.15;	// pheromone evaporation coefficient. All pheromones are multiplied by (1-RHO) 
 											// before this generation's ants make their contributions.
 	
-	public int NUM_ANTS = 50;
-	public static int NUM_GENERATIONS = 100;
+	public int NUM_ANTS = 50;	// number of ants to use
+	public static int NUM_GENERATIONS = 100;	// number of generations to run
 
-	public double NORMAL_PHEROMONE_MUL = 1;
+	public double NORMAL_PHEROMONE_MUL = 1;	// multiplier on normal ant pheromone deposition. It could be interesting to try setting this to 0
+											// and the elite multiplier to 1, so that only the elite ant deposits pheromones.
 	public double ELITE_PHEROMONE_MUL = 1;	// the elite ant deposits extra pheromones; multiply the normal by this amount.
 	
 	/* Information saved for graphing and analysis purposes */
@@ -82,12 +88,16 @@ public class AntColony {
 		return new String[]{"ALPHA", "BETA", "Q", "RHO", "NUM_ANTS"}[param];
 	}
 
+	/* Run the ant colony algorithm for num_generations on the given instance. Pass in a Picture to draw
+	 * on, or null to run in non-GUI mode. */
 	public Ant runACO (Instance inst, int num_generations, Picture pic, boolean verbose) {
 		inst.reset (this);
 		boolean graphical = pic != null;
-		elitelens = new double[num_generations];
-		avglens = new double[num_generations];
-		delta_phersum = new double[num_generations];
+
+		// these arrays record information for graphing and analysis
+		elitelens = new double[num_generations];	// length of the elite path at each generation
+		avglens = new double[num_generations];		// average of the path lengths of all the ants in each generation
+		delta_phersum = new double[num_generations];	// how much the sum of all the pheromones along all the edges changes from generation to generation
 		prev_phersum = ((TSPInstance) inst).pheromoneSum();
 		if (graphical) {
 			pic.setPenColor(BACKGROUND_COLOR[0], BACKGROUND_COLOR[1], BACKGROUND_COLOR[2]);
@@ -200,9 +210,7 @@ public class AntColony {
 	}
 
 	public static void consume (Scanner console) {
-//		while (console.hasNext()) {
-			console.nextLine();
-//		}
+		console.nextLine();
 	}
 
 	public static void main (String[] args) {
