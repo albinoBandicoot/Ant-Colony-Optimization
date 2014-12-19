@@ -8,7 +8,7 @@ public class Variator {
 
 	public int curstep;
 
-	public static final String[] pnames = {"Alpha", "Beta", "Q", "Rho", "nants"};
+	public static final String[] pnames = {"alpha", "beta", "q", "rho", "num_ants"};
 
 	public Variator () {	// this one just goes once without chaging anything
 		param = -1;
@@ -17,6 +17,7 @@ public class Variator {
 	}
 
 	public Variator (String name, double s, double e, int steps) {
+		name = name.toLowerCase();
 		if (name.equals(pnames[0])) param = 0;
 		if (name.equals(pnames[1])) param = 1;
 		if (name.equals(pnames[2])) param = 2;
@@ -29,17 +30,17 @@ public class Variator {
 		stepamt = (end - start) / nsteps;
 	}
 
-	public void advance () {
+	public void advance (AntColony ac) {
 		if (param == -1) {
 			curstep++;
 			return;
 		}
 		System.out.println("Setting " + pnames[param] + " to " + ((curstep*stepamt) + start));
 		if (param == 4 && curstep > 0) {
-			AntColony.Q *= ((curstep*stepamt) + start) / ((curstep+1)*stepamt + start);
-			System.out.println("Adjusted Q to " + AntColony.Q);
+			ac.Q *= ((curstep*stepamt) + start) / ((curstep+1)*stepamt + start);
+			System.out.println("Adjusted Q to " + ac.Q);
 		}
-		AntColony.setParam (param, (curstep++)*stepamt + start);
+		ac.setParam (param, (curstep++)*stepamt + start);
 	}
 
 	public boolean hasNext () {

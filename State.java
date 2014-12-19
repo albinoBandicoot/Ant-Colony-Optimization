@@ -9,7 +9,7 @@ public abstract class State {
 
 	public abstract double distanceTo (State other);			// get the distance (cost) of an edge to state 'other'
 	public abstract double getPheromones (State other);
-	public abstract void setPheromones (State other, double amt);
+	public abstract void setPheromones (State other, double amt, double alpha, double beta);
 	public abstract ArrayList<? extends State> getNeighbors ();
 	public abstract void reset ();
 
@@ -27,9 +27,9 @@ public abstract class State {
 	}
 	*/
 
-	public final void evaporatePheromones () {
+	public final void evaporatePheromones (AntColony ac) {
 		for (State n : getNeighbors()) {
-			setPheromones (n, getPheromones(n) * (1 - AntColony.RHO));
+			setPheromones (n, getPheromones(n) * (1 - ac.RHO), ac.ALPHA, ac.BETA);
 		}
 	}
 }

@@ -214,7 +214,7 @@ public class Picture implements FocusListener, MouseListener, MouseMotionListene
    for (int i = 0; i < keyArray.length; i++)
      keyArray[i] = false;
    font = new Font("arial", Font.PLAIN, 12);
-   mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+   mainFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
    mainFrame.setLocationRelativeTo(null);
  }
 

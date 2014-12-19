@@ -26,9 +26,9 @@ public class TSPState extends State {
 		}
 	}
 
-	public void initProbabilities () {
+	public void initProbabilities (double alpha, double beta) {
 		for (int i=0; i < inst.states.size(); i++) {
-			setPheromones (inst.states.get(i), 10.0);
+			setPheromones (inst.states.get(i), 10.0, alpha, beta);
 		}
 	}
 
@@ -44,10 +44,10 @@ public class TSPState extends State {
 		return pheromones[ ((TSPState) other).id ];
 	}
 
-	public void setPheromones (State other, double amt) {
+	public void setPheromones (State other, double amt, double alpha, double beta) {
 		TSPState t = (TSPState) other;
 		pheromones[t.id] = amt;
-		probabilities[t.id] =  Math.pow (getPheromones(t), AntColony.ALPHA) * Math.pow (desirability (t), AntColony.BETA);
+		probabilities[t.id] =  Math.pow (getPheromones(t), alpha) * Math.pow (desirability (t), beta);
 	}
 
 	public void reset () {

@@ -7,15 +7,18 @@ public class Ant {
 	public double length;	// stores the length of the current path, for efficiency.
 	public boolean done;
 	public Instance inst;
+	public AntColony ac;
 
 	private static int NUM = 0;
 
-	public Ant (Instance inst) {
+	public Ant (AntColony ac, Instance inst) {
 		this.inst = inst;
 		this.id = NUM++;
+		this.ac = ac;
 		path = new ArrayList<State>();
 		pathset = new HashSet <State>();
 		path.add (inst.initial);
+		pathset.add (inst.initial);
 		length = 0;
 		done = false;
 	}
@@ -29,10 +32,10 @@ public class Ant {
 	}
 
 	public void depositPheromones (double multiplier) {
-		double amt = AntColony.Q / length;
+		double amt = ac.Q / length;
 		for (int i=0; i < path.size()-1; i++) {
 			State next = path.get(i+1);
-			path.get(i).setPheromones (next, path.get(i).getPheromones(next) + amt);
+			path.get(i).setPheromones (next, path.get(i).getPheromones(next) + amt, ac.ALPHA, ac.BETA);
 		}
 	}
 

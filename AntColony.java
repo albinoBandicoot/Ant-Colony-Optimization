@@ -5,48 +5,107 @@ import javax.imageio.*;
 import java.awt.*;
 public class AntColony {
 
-	public static final int SIZE = 500;		// Draws a display window of dimensions (size, size); should correspond with SIZE variable in TSPInstance.java
-	public static double ALPHA = 2;	// exponent on pheromone amount; controls how strongly pheromones influence the decision about which neighbor node to visit next
-	public static double BETA  = 1;	// exponent on distance.
-	public static double Q = 3;		// constant multiplier for how much pheromone each ant deposits.
-	public static double RHO = 0.15;	// pheromone evaporation coefficient. All pheromones are multiplied by (1-RHO) 
+	public static int SIZE = 600;		// Draws a display window of dimensions (size, size); should correspond with SIZE variable in TSPInstance.java
+	public double ALPHA = 2;	// exponent on pheromone amount; controls how strongly pheromones influence the decision about which neighbor node to visit next
+	public double BETA  = 1;	// exponent on distance.
+	public double Q = 100;		// constant multiplier for how much pheromone each ant deposits.
+	public double RHO = 0.15;	// pheromone evaporation coefficient. All pheromones are multiplied by (1-RHO) 
 											// before this generation's ants make their contributions.
 	
-	public static int NUM_ANTS = 50;	// I only made this static so a Variator could play with it.
+	public int NUM_ANTS = 50;
+	public static int NUM_GENERATIONS = 100;
 
-	public static final double NORMAL_PHEROMONE_MUL = 1;
-	public static final double ELITE_PHEROMONE_MUL = 1;	// the elite ant deposits extra pheromones; multiply the normal by this amount.
+	public double NORMAL_PHEROMONE_MUL = 1;
+	public double ELITE_PHEROMONE_MUL = 1;	// the elite ant deposits extra pheromones; multiply the normal by this amount.
 	
-	public static double[] elitelens;
-	public static double[] avglens;
-	public static double[] delta_phersum;
-	public static double prev_phersum;
+	/* Information saved for graphing and analysis purposes */
+	public double[] elitelens;
+	public double[] avglens;
+	public double[] delta_phersum;
+	public double prev_phersum;
+
+	/* Settings for visualization */
+	public static final int[] BACKGROUND_COLOR = {255, 255, 255}; 
+	public static final int[] GRID_COLOR = {145, 145, 145}; 
+	public static final int[] ANT_COLOR = {0, 0, 0}; 
+	public static final int[] CITY_COLOR = {0, 0, 0}; 
+	public static final int[] ELITE_COLOR = {255, 0, 0}; 
+	public static final int ANT_WIDTH = 1;
+	public static final int ELITE_WIDTH = 4;
+	public static final int CITY_RADIUS = 5;
+	public static final int GRID_SPACING = 20; // draws grid lines SIZE/GRID_SPACING units apart
+	public static final int SLEEP_TIME = 0; // number of milliseconds the program sleeps per generation (for visualization purposes)
 
 
-	public static Ant runACO (Instance inst, int num_generations, Picture pic) {
+	public AntColony () {
+		// default parameter values
+	}
+
+	public AntColony (double alpha, double beta, double q, double rho, int nants) {
+		ALPHA = alpha;
+		BETA = beta;
+		Q = q;
+		RHO = rho;
+		NUM_ANTS = nants;
+	}
+
+	public void setParam (int param, double val) {
+		switch (param){
+			case 0:
+				ALPHA = val;	break;
+			case 1:
+				BETA = val;		break;
+			case 2:
+				Q = val;		break;
+			case 3:
+				RHO = val;		break;
+			case 4:
+				NUM_ANTS = (int) val;	break;
+			default:
+				System.out.println("Invalid paramter. Choices are 0: alpha, 1: beta, 2: Q, 3: rho");
+				System.exit(1);
+		}
+	}
+
+	public double getParam (int param) {
+		switch (param) {
+			case 0:	return ALPHA;
+			case 1: return BETA;
+			case 2: return Q;
+			case 3: return RHO;
+			case 4: return NUM_ANTS;
+		}
+		return 0;
+	}
+
+	public static String paramName (int param) {
+		return new String[]{"ALPHA", "BETA", "Q", "RHO", "NUM_ANTS"}[param];
+	}
+
+	public Ant runACO (Instance inst, int num_generations, Picture pic, boolean verbose) {
+		inst.reset (this);
 		boolean graphical = pic != null;
 		elitelens = new double[num_generations];
 		avglens = new double[num_generations];
 		delta_phersum = new double[num_generations];
 		prev_phersum = ((TSPInstance) inst).pheromoneSum();
 		if (graphical) {
-			pic.setPenColor(255, 255, 255);
+			pic.setPenColor(BACKGROUND_COLOR[0], BACKGROUND_COLOR[1], BACKGROUND_COLOR[2]);
 			pic.drawRectFill(0, 0, SIZE, SIZE);
-			pic.setPenColor(145, 145, 145);
+			pic.setPenColor(GRID_COLOR[0], GRID_COLOR[1], GRID_COLOR[2]);
 			for (int i = 0; i < SIZE; i = i + SIZE/10) {
 				pic.drawLine(i, 0, i, SIZE);
 				pic.drawLine(0, i, SIZE, i);
 			}
-			pic.setPenColor(0, 0, 0);
+			pic.setPenColor(ANT_COLOR[0], ANT_COLOR[1], ANT_COLOR[2]);
 		}
 		
 		Ant elite = null;
 		for (int i=0; i < num_generations; i++) {
-			if (!graphical) System.out.print ("\rGeneration: " + i);
 			// first make an array of ants that start on the start state 
 			Ant[] ants = new Ant[NUM_ANTS];
 			for (int j=0; j < NUM_ANTS; j++) {
-				ants[j] = new Ant (inst);
+				ants[j] = new Ant (this, inst);
 			}
 
 			// now run the ants 
@@ -69,19 +128,23 @@ public class AntColony {
 			avglens[i] = tot / NUM_ANTS;
 
 			if (graphical) {
-				visualize(elite.path, pic);
-				pic.setPenColor(255, 255, 255);
+				for (Ant a : ants) {
+					visualize(a.path, pic, false);
+				}
+				visualize(elite.path, pic, true);
+				pic.display();
+				// reset background and grid
+				pic.setPenColor(BACKGROUND_COLOR[0], BACKGROUND_COLOR[1], BACKGROUND_COLOR[2]);
 				pic.drawRectFill(0, 0, SIZE, SIZE);
-				pic.setPenColor(145, 145, 145);
-				for (int i1 = 0; i1 < SIZE; i1 = i1 + SIZE/10) {
+				pic.setPenColor(GRID_COLOR[0], GRID_COLOR[1], GRID_COLOR[2]);
+				for (int i1 = 0; i1 < SIZE; i1 = i1 + SIZE/GRID_SPACING) {
 					pic.drawLine(i1, 0, i1, SIZE);
 					pic.drawLine(0, i1, SIZE, i1);
 				}
-				pic.setPenColor(0, 0, 0);
+				pic.setPenColor(ANT_COLOR[0], ANT_COLOR[1], ANT_COLOR[2]);
 				try {
-					Thread.sleep(0);
+					Thread.sleep(SLEEP_TIME);
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -89,7 +152,7 @@ public class AntColony {
 			// now update pheromones
 			// first the uniform decay
 			for (State c : inst.states) {
-				c.evaporatePheromones();
+				c.evaporatePheromones(this);
 			}
 			// now add the ant contributions
 			for (Ant a : ants) {
@@ -101,238 +164,175 @@ public class AntColony {
 			double newph = ((TSPInstance) inst).pheromoneSum();
 			delta_phersum[i] = newph - prev_phersum;
 			prev_phersum = newph;
-			if (graphical) System.out.println("Generation " + i + "; elite length " + elite.length + "; average length " + avglens[i] + "; phersum, delta  = " + newph + ", " + delta_phersum[i]);
+			if (verbose) System.out.println("Generation " + i + "; elite length " + elite.length + "; average length " + avglens[i] + "; phersum, delta  = " + newph + ", " + delta_phersum[i]);
 		}
-		System.out.println();
+		if (verbose)	System.out.println();
 		return elite;
 	}
 	
-	public static void visualize(ArrayList<State> path, Picture pic) {
+	public static void visualize(ArrayList<State> path, Picture pic, boolean isShortest) {
 		int xCurr = -1;
 		int yCurr = -1;
 		int xNext = -1;
 		int yNext = -1;
-		for (int i = 0; i < path.size()-2; i++) { // first and last city in path are the same
+		for (int i = 0; i < path.size()-1; i++) { // first and last city in path are the same
 			State currCity = path.get(i);
 			State nextCity = path.get(i+1);
 			xCurr = (int) ((TSPState) currCity).x;
 			yCurr = (int) ((TSPState) currCity).y;
 			xNext = (int) ((TSPState) nextCity).x;
 			yNext = (int) ((TSPState) nextCity).y;
-			pic.drawCircleFill(xCurr, yCurr, 3);
-			if (i == path.size() - 1) {
-				pic.drawCircleFill (xNext, yNext, 3);
+			pic.setPenColor(CITY_COLOR[0], CITY_COLOR[1], CITY_COLOR[2]);
+			pic.drawCircleFill(xCurr, yCurr, CITY_RADIUS);
+			if (isShortest) {
+				pic.setPenWidth(ELITE_WIDTH);
+				pic.setPenColor(ELITE_COLOR[0], ELITE_COLOR[1], ELITE_COLOR[2]);
+			} else {
+				pic.setPenWidth(ANT_WIDTH);
+				pic.setPenColor(ANT_COLOR[0], ANT_COLOR[1], ANT_COLOR[2]);
 			}
 			pic.drawLine(xCurr, yCurr, xNext, yNext);
-		}
-		pic.display();
-	}
-
-	/* Produce a graph of the final path length and number of generations before finding the eventual elite path
-	 * on a particular TSP instance while varying one of the parameters (alpha, beta, Q, RHO). The parameter goes
-	 * on the X-axis, and the path length and generation count goes on the Y */
-
-	// set yscale to 0 for auto
-	public static BufferedImage graphParam (TSPInstance t, int ng, int nruns, Variator v, int xstep, double yscale) {
-		int xsize = xstep * v.nsteps;
-		BufferedImage gr = new BufferedImage (xsize, 500, 1);
-		Graphics2D g = (Graphics2D) gr.getGraphics();
-		g.setRenderingHint (RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-		g.setColor (Color.WHITE);
-		g.fillRect (0,0, xsize, 500);
-
-		double[] elens = new double[v.nsteps+2];
-		double[] conv_time = new double[v.nsteps+2];
-		System.out.println("nruns = " + nruns);
-		for (int RUN = 0; RUN < nruns; RUN++) {
-			int i = 0;
-			while (v.hasNext()) {
-				v.advance();
-				Ant elite = runACO (t, ng, null);
-	//			elens[i] = avglens[ng-1];
-				elens[i] += elite.length;
-				conv_time[i] += findConvTime (elitelens);
-				t.reset();	// clear the pheromones so we can go again
-				i++;
-			}
-			v.reset();
-		}
-		for (int i=0; i < elens.length; i++) {
-			elens[i] /= nruns;
-			conv_time[i] /= nruns;
-		}
-		if (yscale == 0) {
-			yscale = elens[0]*1.1;
-		}
-		graphArray (g, Color.RED, elens, yscale, xstep);
-		graphArray (g, Color.BLUE, conv_time, ng, xstep);
-
-		g.setColor (Color.BLACK);
-		g.drawString (paramName (v.param) + " from " + v.start + " to " + v.end, xsize - 170, 25);
-		int w = 0;
-		for (int j=0; j < 4; j++) {
-			if (j != v.param) {
-				g.drawString (paramName (j) + " = " + getParam (j), xsize -170, 45 + w*20);
-				w++;
+			if (isShortest) {
+				pic.setPenWidth(ANT_WIDTH);
+				pic.setPenColor(ANT_COLOR[0], ANT_COLOR[1], ANT_COLOR[2]);
 			}
 		}
-		axes (g, v.start, v.end, v.stepamt, 0, elens[0]*1.1, elens[0]*1.1/5, xsize, 500, paramName (v.param), "Stuff");
-		return gr;
 	}
 
-	public static int findConvTime (double[] e) {
-		double val = e[e.length-1];
-		for (int i=e.length-1; i>=0; i--){ 
-			if (e[i] != val) {
-				return i;
-			}
-		}
-		return 0;
+	public static void consume (Scanner console) {
+//		while (console.hasNext()) {
+			console.nextLine();
+//		}
 	}
 
-	public static String paramName (int param) {
-		return new String[]{"ALPHA", "BETA", "Q", "RHO", "ALPHA, BETA"}[param];
-	}
+	public static void main (String[] args) {
+		Scanner console = new Scanner(System.in);
+		TSPInstance t = null;
+		System.out.println("Welcome to our ACO Travelling Salesman Problem implementation!");
+		System.out.println();
+		int option = 0;
+		AntColony ac = new AntColony ();
+		while (t == null) {
+			System.out.println ("How do you want to generate your TSP instance?");
+			System.out.println ("(1) load an instance from a file");
+			System.out.println ("(2) generate a random instance");
+			System.out.print (">>> ");
+			try {
+				option = console.nextInt ();
+				if (option == 1) {
+					System.out.print("Enter a filename: ");
+					String fname = console.next();
+					try {
+						t = new TSPInstance (new File (fname)); 
+					} catch (IOException e) {
+						System.out.println ("There was a problem reading the file. ");
+						e.printStackTrace ();
+//						continue;
+					}
+				} else if (option == 2) {
+					System.out.print ("How many cities would you like to generate? ");
+					try {
+						int ncities = console.nextInt();
+						if (ncities > 0) {
+							t = new TSPInstance (ncities);
+						} else {
+							System.out.println ("Expecting a positive integer.");
+						}
+					} catch (InputMismatchException e) {
+						System.out.println ("Invalid input. Please type an integer.");
+						consume (console);
+					}
 
-	public static void setParam (int param, double val) {
-		switch (param){
-			case 0:
-				ALPHA = val;	break;
-			case 1:
-				BETA = val;		break;
-			case 2:
-				Q = val;		break;
-			case 3:
-				RHO = val;		break;
-			case 4:
-				NUM_ANTS = (int) val;	break;
-			default:
-				System.out.println("Invalid paramter. Choices are 0: alpha, 1: beta, 2: Q, 3: rho");
-				System.exit(1);
-		}
-	}
-
-	public static double getParam (int param) {
-		switch (param) {
-			case 0:	return ALPHA;
-			case 1: return BETA;
-			case 2: return Q;
-			case 3: return RHO;
-			case 4: return ALPHA;
-		}
-		return 0;
-	}
-
-	public static Color getColor (float d) {
-		if (d < 0.5) {
-			d *= 2;
-			return new Color (1-d, d, 0, 0.6f);
-		} else {
-			d = (d-0.5f)*2;
-			return new Color (0, 1-d, d, 0.6f);
-		}
-	}
-
-	public static BufferedImage graphLengths (TSPInstance t, int ng, int nruns, Variator v, int xscale, boolean graph_elites) {
-		BufferedImage gr = new BufferedImage (ng*xscale, 500, 1);
-		Graphics2D g = (Graphics2D) gr.getGraphics();
-		g.setRenderingHint (RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-		g.setColor (Color.WHITE);
-		g.fillRect (0,0,ng*xscale,500);
-
-		double ybound = 0;
-		while (v.hasNext()) {
-			double[] avgavg = new double[ng];
-			double[] eliteavg = new double[ng];
-			v.advance();
-			float d = ((float) v.curstep) / v.nsteps;
-			Color col = getColor (d);
-
-			for (int i=0; i < nruns; i++) {
-				runACO (t, ng, null);
-				for (int j=0; j < avglens.length; j++) {
-					avgavg[j] += avglens[j] / nruns;
-					eliteavg[j] += elitelens[j] / nruns;
+				} else {
+					System.out.println ("Invalid input. Please type either 1 or 2");
+					consume (console);
 				}
-				t.reset();
-			}
-			if (ybound == 0) ybound = avglens[0] * 1.25;
-			if (graph_elites) 
-				graphArray (g, Color.BLACK, eliteavg, ybound, xscale);
-			graphArray (g, col, avgavg, ybound, xscale);
-//			t = new TSPInstance(t.states.size());
-		}
-		axes (g, 0, ng, ng/5, 0, ybound, ybound/5, ng*xscale, 500, "Generations", "Path length");
-		return gr;
-	}
-
-	public static final int XAXIS_OFFSET = 35;
-	public static final int YAXIS_OFFSET = 10;
-	public static final int XLABEL_YPOS = 15;
-	public static final int TIC_LEN = 8;
-	public static void axes (Graphics2D g, double xmin, double xmax, double xtick, double ymin, double ymax, double ytick, int xs, int ys, String xlabel, String ylabel) {
-		g.setColor (Color.BLACK);
-		g.setStroke (new BasicStroke (2));
-		g.drawLine (YAXIS_OFFSET, ys - XAXIS_OFFSET, xs, ys - XAXIS_OFFSET);
-		g.drawLine (YAXIS_OFFSET, ys - XAXIS_OFFSET, YAXIS_OFFSET, 0);
-
-		g.setStroke (new BasicStroke (1));
-		int i = 0;
-		double xstep = (xmax - xmin)/xtick * (xs - YAXIS_OFFSET);
-		System.out.println("xstep = " + xstep);
-		for (double x = xmin; x < xmax; x += xtick) {
-			int xpos = (int) (i * xstep);
-			System.out.println("xpos = " + xpos);
-			g.drawLine (xpos, ys-(XAXIS_OFFSET+TIC_LEN/2), xpos, ys-(XAXIS_OFFSET - TIC_LEN/2));
-		}
-		g.drawString (xlabel, xs/2 - 50, ys - XLABEL_YPOS);
-	}
-
-
-	public static void graphArray (Graphics2D g, Color col, double[] array, double ybound, int xscale) {
-		g.setColor (col);
-		g.setStroke (new BasicStroke (2));
-		for (int x=0; x < array.length-1; x++) {
-			int cur_y = 500 - (int) (array[x]*(500 - XAXIS_OFFSET)/ybound + XAXIS_OFFSET);
-			int next_y = 500 - (int) (array[x+1]*(500 - XAXIS_OFFSET)/ybound + XAXIS_OFFSET);
-			g.drawLine (x*xscale + YAXIS_OFFSET, cur_y, (x+1)*xscale + YAXIS_OFFSET, next_y);
-			if (xscale > 10) {	// draw little circles
-				g.fillOval (x*xscale + YAXIS_OFFSET - 4, cur_y - 4, 8, 8);
+			} catch (Exception e) {
+				System.out.println ("Invalid input. Please type either 1 or 2");
+				consume (console);
 			}
 		}
-	}
-	
-	public static void main (String[] args) throws java.io.IOException{
-//		TSPInstance t = new TSPInstance(10);
-		if (args[0].equals ("graph")) {
-			Scanner sc = new Scanner (System.in);
-			//System.out.println("# of cities: ");
-			//int nc = sc.nextInt();
-			System.out.print("# of ants: ");
-			NUM_ANTS = sc.nextInt();
-			TSPInstance t = new TSPInstance (new File ("uscap.txt"));
-			BufferedImage img = graphParam (t, 120, 10, new Variator ("Beta", 0.1, 2.5, 40), 25, 0);
-			//BufferedImage img = graphLengths (t, 150, 6, new Variator ("Beta", 0.1, 2.5, 20), 4, false);
-			//BufferedImage img = graphLengths (t, 90, 100, new Variator(), 6, true);
-			ImageIO.write (img, "png", new File (args[1]));
-		} else {
-	//		Picture pic = new Picture(SIZE, SIZE); 
-			Picture pic = null;
-			TSPInstance t;
-			char c = args[0].charAt(0);
-			if (c <= '9' && c >= '0') {
-				t = new TSPInstance(Integer.parseInt (args[0]));
-			} else {
-				t = new TSPInstance (new File (args[0]));
+
+		System.out.print ("Number of ants: ");
+		ac.NUM_ANTS = console.nextInt();
+
+		System.out.print ("Number of generations to run: ");
+		NUM_GENERATIONS = console.nextInt();
+
+		Picture pic = null;	
+		while (option != 5) {
+			System.out.println("What do you want to do?");
+			System.out.println("(1) run with GUI");
+			System.out.println("(2) run without GUI");
+			System.out.println("(3) set parameters");
+			System.out.println("(4) generate graph");
+			System.out.println("(5) quit");
+			System.out.print(">>> ");
+			try {
+				option = console.nextInt();
+			} catch (Exception e) {
+				System.out.println ("Not a valid input; please type an integer from 1-5");
+				continue;
 			}
-			NUM_ANTS = Integer.parseInt (args[1]);
-			Ant soln = runACO (t, Integer.parseInt (args[2]), pic);
+			System.out.println();
+			if (option == 1) {
+				pic = new Picture (SIZE, SIZE);
+			} else if (option == 2) {
+				pic = null;
+			} else  if (option == 3) {
+				for (int i=0; i <= 3; i++) {
+					System.out.print (paramName(i) + ": ");
+					ac.setParam (i, console.nextDouble());
+				}
+				continue;
+			} else if (option == 4) {
+				System.out.print ("Graph style: (1) plot average path lengths against time   (2) plot avg. path lengths & convergence times against parameter: ");
+				int style = console.nextInt();
+				System.out.print ("Which parameter to vary? (1) alpha (2) beta (3) Q (4) rho (5) num ants (adjusting Q): ");
+				int param = console.nextInt() - 1;
+				System.out.print ("Starting value: ");
+				double start = console.nextDouble();
+				System.out.print ("Ending value: ");
+				double end = console.nextDouble();
+				System.out.print ("Number of steps: ");
+				int nsteps = console.nextInt();
+				Variator v = new Variator (paramName(param), start, end, nsteps);
+
+				System.out.print ("Average results over N runs. N = ");
+				int nruns = console.nextInt();
+				System.out.print ("Output file (.png extension): ");
+				String fname = console.next();
+
+				BufferedImage result = null;
+				if (style == 1) {	// lengths against time
+					System.out.print ("X-axis scale (number of pixels per generation): ");
+					int xscale = console.nextInt();
+					result = Graphing.graphLengths (ac, t, NUM_GENERATIONS, nruns, v, xscale, false);
+					
+				} else if (style == 2) {
+					System.out.print ("X-axis scale (number of pixels per parameter step): ");
+					int xscale = console.nextInt();
+					result = Graphing.graphParam (ac, t, NUM_GENERATIONS, nruns, v, xscale, 0);
+				}
+
+				try {
+					ImageIO.write (result, "png", new File (fname));
+				} catch (IOException e) {
+					System.out.println ("Could not write output.");
+					e.printStackTrace();
+				}
+				continue;
+				
+			} else if (option == 5) {
+				System.exit(0);
+			}
+			System.out.println();
+
+			Ant soln = ac.runACO(t, NUM_GENERATIONS, pic, true);
 			System.out.println("Path length: " + soln.length);
-			/*
 			for (State s : soln.path) {
 				System.out.println("City #" + s.id + ": " + (TSPState) s);
 			}
-			*/
 		}
 	}
 }
